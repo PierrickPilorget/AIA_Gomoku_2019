@@ -1,0 +1,39 @@
+______Process started______
+START 6
+OK
+INFO max_memory 83886080
+INFO timeout_match 180000
+INFO timeout_turn 5000
+INFO game_type 1
+INFO rule 1
+INFO time_left 176723
+INFO folder C:\Users\aurel\Downloads
+TURN 2,1
+[12972] Failed to execute script pbrain-gomoku-ai
+END
+______Process started______
+START 6
+OK
+INFO max_memory 83886080
+INFO timeout_match 180000
+INFO timeout_turn 5000
+INFO game_type 1
+INFO rule 1
+INFO time_left 177007
+INFO folder C:\Users\aurel\Downloads
+TURN 2,1
+[8536] Failed to execute script pbrain-gomoku-ai
+END
+______Process started______
+START 6
+OK
+INFO max_memory 83886080
+INFO timeout_match 180000
+INFO timeout_turn 5000
+INFO game_type 1
+INFO rule 1
+INFO time_left 176833
+INFO folder C:\Users\aurel\Downloads
+TURN 2,1
+[4464] Failed to execute script pbrain-gomoku-ai
+END

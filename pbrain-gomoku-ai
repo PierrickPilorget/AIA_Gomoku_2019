@@ -1,0 +1,274 @@
+#!/usr/bin/env python3.7
+
+import sys
+import re
+import numpy
+import random
+import copy
+import math
+
+class Board:
+
+    def __init__(self):
+        self.first = False
+
+    def play(self):
+        res = self.max_alpha_beta(-math.inf, math.inf, 2)
+        x = res[2]
+        y = res[1]
+        self.board_array[y, x] = 1
+        print(format(x) + "," + format(y))
+
+    def value_board(self, turn):
+        total_score = 0
+        for y in range(0, self.size):
+            for x in range(0, self.size):
+                if self.board_array[y, x] == 1:
+                    if turn == 'min':
+                        total_score += self.value_line(x, y)
+                    else:
+                        total_score += self.value_line(x, y) * 10
+                if self.board_array[y, x] == 2:
+                    if turn == 'min':
+                        total_score -= self.value_line(x, y) * 10
+                    else:
+                        total_score -= self.value_line(x, y)
+        return total_score
+
+    def value_line(self, x, y):
+        tile = self.board_array[y, x]
+        score_line = 0
+        #sud-ouest
+        if self.check_border(y, x, 'NE') and self.board_array[y - 1, x + 1] != tile:
+            i = x - 1
+            j = y + 1
+            points = 1
+            while self.check_border(j, i, 'SO') and self.board_array[j, i] == tile:
+                score_line += points
+                points *= 10
+                i -= 1
+                j += 1
+            if self.check_border(j, i, 'SO') and self.board_array[j, i] == 0:
+                score_line += points * 25
+                points *= 25
+            if self.check_border(y, x, 'NE') and self.board_array[y - 1, x + 1] == 0:
+                score_line += points
+        #sud
+        if self.check_border(y, x, 'N') and self.board_array[y - 1, x] != tile:
+            i = x
+            j = y + 1
+            points = 1
+            while self.check_border(j, i, 'S') and self.board_array[j, i] == tile:
+                score_line += points
+                points *= 10
+                j += 1
+            if self.check_border(j, i, 'S') and self.board_array[j, i] == 0:
+                score_line += points
+                points *= 25
+            if self.check_border(y, x, 'S') and self.board_array[y - 1, x] == 0:
+                score_line += points
+        #sud-est
+        if self.check_border(y, x, 'NO') and self.board_array[y - 1, x - 1] != tile:
+            i = x + 1
+            j = y + 1
+            points = 1
+            while self.check_border(j, i, 'SE') and self.board_array[j, i] == tile:
+                score_line += points
+                points *= 10
+                i += 1
+                j += 1
+            if self.check_border(j, i, 'SE') and self.board_array[j, i] == 0:
+                score_line += points
+                points *= 25
+            if self.check_border(y, x, 'SE') and self.board_array[y - 1, x + 1] == 0:
+                score_line += points
+        #est
+        if self.check_border(y, x, 'O') and self.board_array[y, x - 1] != tile:
+            i = x + 1
+            j = y
+            points = 1
+            while self.check_border(j, i, 'E') and self.board_array[j, i] == tile:
+                score_line += points
+                points *= 10
+                i += 1
+            if self.check_border(j, i, 'E') and self.board_array[j, i] == 0:
+                score_line += points
+                points *= 25
+            if self.check_border(y, x, 'E') and self.board_array[y, x + 1] == 0:
+                score_line += points
+        return score_line
+
+    def check_border(self, y, x, direction):
+        if direction == 'NE':
+            if y <= 0 or x >= self.size - 1:
+                return False
+            else:
+                return True
+        if direction == 'N':
+            if y <= 0:
+                return False
+            else:
+                return True
+        if direction == 'NO':
+            if y <= 0 or x <= 0:
+                return False
+            else:
+                return True
+        if direction == 'O':
+            if x <= 0:
+                return False
+            else:
+                return True
+        if direction == 'SO':
+            if y >= self.size - 1 or x <= 0:
+                return False
+            else:
+                return True
+        if direction == 'S':
+            if y >= self.size - 1:
+                return False
+            else:
+                return True
+        if direction == 'SE':
+            if y >= self.size - 1 or x >= self.size - 1:
+                return False
+            else:
+                return True
+        if direction == 'S':
+            if x >= self.size - 1:
+                return False
+            else:
+                return True
+
+    def max_alpha_beta(self, alpha, beta, depth):
+        maxv = -math.inf
+        result = [maxv, None, None]
+        buffer = copy.copy(self)
+        for y in range(0, buffer.size):
+            for x in range(0, buffer.size):
+                if buffer.board_array[y, x] == 0:
+                    buffer.board_array[y, x] = 1
+                    if depth > 0:
+                        daughter_res = buffer.min_alpha_beta(alpha, math.inf, depth - 1)
+                        if daughter_res[0] <= alpha:
+                            buffer.board_array[y, x] = 0
+                            return daughter_res
+                        else:
+                            alpha = daughter_res[0]
+                        if daughter_res[0] > result[0]:
+                            result[0] = daughter_res[0]
+                            result[1] = y
+                            result[2] = x
+                    else:
+                        score = buffer.value_board('max')
+                        if score > maxv:
+                            maxv = score
+                            result[0] = maxv
+                            result[1] = y
+                            result[2] = x
+                    buffer.board_array[y, x] = 0
+        return result
+
+    def min_alpha_beta(self, alpha, beta, depth):
+        minv = math.inf
+        result = [minv, None, None]
+        buffer = copy.copy(self)
+        for y in range(0, buffer.size):
+            for x in range(0, buffer.size):
+                if buffer.board_array[y, x] == 0:
+                    buffer.board_array[y, x] = 2
+                    if depth > 0:
+                        daughter_res = buffer.max_alpha_beta(-math.inf, beta, depth - 1)
+                        if daughter_res[0] >= beta:
+                            buffer.board_array[y, x] = 0
+                            return daughter_res
+                        else:
+                            beta = daughter_res[0]
+                        if daughter_res[0] < result[0]:
+                            result[0] = daughter_res[0]
+                            result[1] = y
+                            result[2] = x
+                    else:
+                        score = buffer.value_board('min')
+                        if score < minv:
+                            minv = score
+                            result[0] = minv
+                            result[1] = y
+                            result[2] = x
+                    buffer.board_array[y, x] = 0
+        return result
+
+    def read(self):
+        while True:
+            line = input()
+            cmd = re.split('\W+', line)
+            if cmd[0] in self.function_dictionnary:
+                param1 = cmd[1] if len(cmd) > 1 else 0
+                param2 = cmd[2] if len(cmd) > 2 else 0
+                self.function_dictionnary[cmd[0]](self, param1, param2)
+            else:
+                print('ERROR message - unknown command')
+
+    def display(self, empty1, empty2):
+        print(self.board_array)
+
+    def start(self, size, empty):
+        self.size = int(size)
+        if self.size < 5:
+            print("ERROR message - unsupported size or other error")
+        else:
+            self.board_array = numpy.zeros((self.size, self.size), dtype=numpy.int8)
+            print("OK")
+
+    def turn(self, x, y):
+        x = int(x)
+        y = int(y)
+        if self.board_array[y, x] == 0:
+            self.board_array[y, x] = 2
+            self.play()
+        else:
+            print("ERROR message - two pawns on the same tile")
+
+    def begin(self, empty1, empty2):
+        beg = self.size // 2 - 1
+        self.board_array[beg, beg] = 1
+        print(format(beg) + ',' + format(beg))
+
+    def board(self, empty1, empty2):
+        while True:
+            line = input()
+            cmd = re.split('\W+', line)
+            if cmd[0] != "DONE":
+                x = int(cmd[0])
+                y = int(cmd[1])
+                if self.board_array[y, x] == 0:
+                    self.board_array[y, x] = int(cmd[2])
+                else:
+                    print('ERROR message - two pawns on the same tile')
+            else:
+                self.play()
+                return
+
+    def end(self, empty1, empty2):
+        sys.exit(0)
+
+    def info(self, instruction, value):
+        return
+
+    def about(self, empty1, empty2):
+        print('name=\"SAGITTARIUS A*\" , version=\"0.0.1\" , author=\"Aurélie viens stp\" , country=\"Bretagne\"')
+
+    function_dictionnary = {
+            "START":start,
+            "TURN":turn,
+            "BEGIN":begin,
+            "BOARD":board,
+            "END":end,
+            "INFO":info,
+            "ABOUT":about,
+            "DISPLAY":display
+            }
+
+
+game = Board()
+game.read()
